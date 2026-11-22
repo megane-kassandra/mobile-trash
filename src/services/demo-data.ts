@@ -1,0 +1,112 @@
+import type { AppDatabase } from '@/types/models';
+
+/**
+ * Initial demo content. These values are stored locally and can be refreshed
+ * or replaced by an API-backed repository later.
+ */
+export const DEMO_DATABASE: AppDatabase = {
+  version: 1,
+  users: [
+    {
+      id: 'client-marie',
+      firstName: 'Marie',
+      lastName: 'Ngono',
+      phone: '690000001',
+      address: 'Melen, Yaoundé',
+      role: 'CLIENT',
+      status: 'ACTIVE',
+      createdAt: '2026-10-12T09:00:00.000Z',
+      credentialHash: 'demo:client-marie:123456',
+    },
+    {
+      id: 'collector-paul',
+      firstName: 'Paul',
+      lastName: 'Nkomo',
+      phone: '690000002',
+      address: 'Essos, Yaoundé',
+      role: 'COLLECTEUR',
+      status: 'ACTIVE',
+      createdAt: '2026-10-10T09:00:00.000Z',
+      credentialHash: 'demo:collector-paul:123456',
+    },
+    {
+      id: 'collector-aicha',
+      firstName: 'Aïcha',
+      lastName: 'Mba',
+      phone: '690000003',
+      address: 'Bastos, Yaoundé',
+      role: 'COLLECTEUR',
+      status: 'ACTIVE',
+      createdAt: '2026-10-11T09:00:00.000Z',
+      credentialHash: 'demo:collector-aicha:123456',
+    },
+    {
+      id: 'admin-main',
+      firstName: 'Admin',
+      lastName: 'Collecte+',
+      phone: '690000000',
+      address: 'Siège Collecte+',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      createdAt: '2026-09-01T09:00:00.000Z',
+      credentialHash: 'demo:admin-main:123456',
+    },
+  ],
+  collections: [
+    {
+      id: 'collection-1',
+      collectorId: 'collector-paul',
+      location: 'Melen',
+      locationDetails: 'Près du marché Melen, côté pharmacie',
+      date: '2026-11-25',
+      startTime: '08:00',
+      endTime: '10:30',
+      maxCapacity: 3,
+      description: 'Collecte des déchets ménagers triés.',
+      status: 'PUBLISHED',
+      createdAt: '2026-11-18T10:00:00.000Z',
+      updatedAt: '2026-11-18T10:00:00.000Z',
+    },
+    {
+      id: 'collection-2',
+      collectorId: 'collector-aicha',
+      location: 'Bastos',
+      locationDetails: 'À la sortie principale du quartier',
+      date: '2026-11-28',
+      startTime: '14:00',
+      endTime: '16:00',
+      maxCapacity: 5,
+      description: 'Collecte des sacs verts et cartons.',
+      status: 'PUBLISHED',
+      createdAt: '2026-11-19T10:00:00.000Z',
+      updatedAt: '2026-11-19T10:00:00.000Z',
+    },
+  ],
+  reservations: [
+    {
+      id: 'reservation-1',
+      collectionId: 'collection-1',
+      clientId: 'client-marie',
+      status: 'CONFIRMEE',
+      createdAt: '2026-11-19T12:00:00.000Z',
+      updatedAt: '2026-11-19T12:00:00.000Z',
+    },
+  ],
+  reports: [
+    {
+      id: 'report-1',
+      reporterId: 'client-marie',
+      collectionId: 'collection-1',
+      category: 'COLLECTE',
+      message: 'Demande d’information sur le point exact de regroupement.',
+      status: 'NOUVEAU',
+      createdAt: '2026-11-20T08:30:00.000Z',
+      updatedAt: '2026-11-20T08:30:00.000Z',
+    },
+  ],
+  settings: {
+    appName: 'Collecte+',
+    supportEmail: 'support@collecteplus.demo',
+    allowPublicRegistration: true,
+  },
+};

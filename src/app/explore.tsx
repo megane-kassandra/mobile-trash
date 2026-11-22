@@ -1,180 +1,97 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Colors } from '@/constants/theme';
+import { useAuth } from '@/context/auth-context';
+import { getRoleHomeRoute, getRoleLabel } from '@/services/role-service';
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
-
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+export default function ExploreScreen() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const colors = Colors.light;
+  const actions = user?.role === 'ADMIN'
+    ? [
+        { label: 'Utilisateurs', detail: 'Gérer les comptes et les accès', icon: 'people-outline' as const, route: '/admin/users' as const },
+        { label: 'Collectes', detail: 'Consulter les tournées publiées', icon: 'calendar-outline' as const, route: '/admin/collections' as const },
+        { label: 'Signalements', detail: 'Traiter les demandes d’assistance', icon: 'alert-circle-outline' as const, route: '/admin/reports' as const },
+      ]
+    : user?.role === 'COLLECTEUR'
+      ? [
+          { label: 'Publier une collecte', detail: 'Proposer un nouveau créneau', icon: 'add-circle-outline' as const, route: '/collector/publish' as const },
+          { label: 'Mes collectes', detail: 'Gérer vos tournées publiées', icon: 'calendar-outline' as const, route: '/collector/collections' as const },
+          { label: 'Réservations reçues', detail: 'Voir les clients inscrits', icon: 'people-outline' as const, route: '/collector/reservations' as const },
+        ]
+      : user
+        ? [
+            { label: 'Collectes disponibles', detail: 'Trouver un créneau dans votre quartier', icon: 'search-outline' as const, route: '/client/collectes' as const },
+            { label: 'Mes réservations', detail: 'Suivre ou annuler une demande', icon: 'calendar-outline' as const, route: '/client/reservations' as const },
+            { label: 'Historique', detail: 'Retrouver vos collectes passées', icon: 'time-outline' as const, route: '/client/historique' as const },
+          ]
+        : [];
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.heading}>
+          <Text style={[styles.eyebrow, { color: colors.primary }]}>{user ? getRoleLabel(user.role).toUpperCase() : 'COLLECTE+'}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Explorer</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Retrouvez les actions utiles à votre espace.</Text>
+        </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
+        {user ? (
+          <Pressable onPress={() => router.push(getRoleHomeRoute(user.role))} style={[styles.dashboard, { backgroundColor: colors.primary }]}>
+            <Ionicons name="speedometer-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.dashboardText}>Ouvrir mon tableau de bord</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </Pressable>
+        ) : (
+          <View style={[styles.guestCard, { backgroundColor: colors.backgroundElement }]}>
+            <Text style={[styles.guestText, { color: colors.text }]}>Connectez-vous pour accéder aux services et à votre espace personnel.</Text>
+            <View style={styles.guestActions}>
+              <Pressable onPress={() => router.push('/login')} style={[styles.guestButton, { backgroundColor: colors.primary }]}><Text style={styles.guestButtonText}>Connexion</Text></Pressable>
+              <Pressable onPress={() => router.push('/register')} style={[styles.guestButton, { backgroundColor: colors.background }]}><Text style={[styles.guestButtonText, { color: colors.primary }]}>Inscription</Text></Pressable>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.list}>
+          {actions.map((action) => (
+            <Pressable key={action.label} onPress={() => router.push(action.route)} style={({ pressed }) => [styles.action, { backgroundColor: colors.backgroundElement }, pressed && styles.pressed]}>
+              <View style={[styles.icon, { backgroundColor: colors.background }]}><Ionicons name={action.icon} size={22} color={colors.primary} /></View>
+              <View style={styles.actionText}>
+                <Text style={[styles.actionTitle, { color: colors.text }]}>{action.label}</Text>
+                <Text style={[styles.actionDetail, { color: colors.textSecondary }]}>{action.detail}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={19} color={colors.textSecondary} />
             </Pressable>
-          </ExternalLink>
-        </ThemedView>
-
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
-  },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
-  },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
-  },
-  collapsibleContent: {
-    alignItems: 'center',
-  },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
-  },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-  },
+  safe: { flex: 1 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', padding: 22, paddingBottom: 40 },
+  heading: { marginTop: 12, marginBottom: 23 },
+  eyebrow: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2, marginBottom: 7 },
+  title: { fontSize: 29, fontWeight: '900' },
+  subtitle: { fontSize: 14, marginTop: 6 },
+  dashboard: { minHeight: 56, borderRadius: 14, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 20 },
+  dashboardText: { flex: 1, color: '#FFFFFF', fontWeight: '800' },
+  guestCard: { padding: 18, borderRadius: 16, marginBottom: 20 },
+  guestText: { fontSize: 14, lineHeight: 21, fontWeight: '700' },
+  guestActions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  guestButton: { flex: 1, minHeight: 45, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  guestButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  list: { gap: 10 },
+  action: { minHeight: 74, borderRadius: 15, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  icon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  actionText: { flex: 1 },
+  actionTitle: { fontSize: 14, fontWeight: '800', marginBottom: 4 },
+  actionDetail: { fontSize: 12 },
+  pressed: { opacity: 0.75 },
 });
